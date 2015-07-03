@@ -1,14 +1,14 @@
 #!/bin/sh
 
-# This script can be found on https://github.com/Azure/azure-quickstart-templates/blob/master/slurm/azuredeploy.sh
+# This script can be found on https://raw.githubusercontent.com/YidingZhou/azure-quickstart-templates/SLES/sles-cluster/azuredeploy.sh
 # This script is part of azure deploy ARM template
 # This script assumes the Linux distribution to be Ubuntu (or at least have apt-get support)
-# This script will install SLURM on a Linux cluster deployed on a set of Azure VMs
 
 # Basic info
 date > /tmp/azuredeploy.log.$$ 2>&1
 whoami >> /tmp/azuredeploy.log.$$ 2>&1
 echo $@ >> /tmp/azuredeploy.log.$$ 2>&1
+env >> /tmp/azuredeploy.log.$$ 2>&1
 
 # Usage
 if [ "$#" -ne 9 ]; then
