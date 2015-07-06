@@ -53,14 +53,20 @@
             "metadata": {
                 "description": "This is the location where the availability set will be deployed"
             }
+        },
+        "vmSourceImageName": {
+            "type": "string",
+            "defaultValue": "rdmafinallargenodecounttestimage-os-2015-06-26"
+        },
+        "subscriptionId":{
+            "type": "string",
+            "defaultValue": "e5949e74-089c-4cca-8ebf-90ee9fa01a70"            
         }
     },
     "variables": {
-        "imagePublisher": "Canonical",
-        "imageOffer": "UbuntuServer",
-        "ubuntuOSVersion": "15.04",
+        //"sourceImageName": "[concat('/',parameters('subscriptionId'),'/services/images/',parameters('vmSourceImageName'))]",
+        "sourceImageName": "[concat('/',parameters('subscriptionId'),'/services/images/',parameters('vmSourceImageName'))]",
         "vmStorageAccountContainerName": "vhd",
-        "OSDiskName": "osdisk",
         "publicIPAddressType": "Dynamic",
         "publicIPAddressName": "publicips",
         "masterVMName": "master",
@@ -180,21 +186,11 @@
                     "adminPassword": "[parameters('adminPassword')]"
                 },
                 "storageProfile": {
-                    "imageReference": {
-                        "publisher": "[variables('imagePublisher')]",
-                        "offer": "[variables('imageOffer')]",
-                        "sku" : "[variables('ubuntuOSVersion')]",
-                        "version":"latest"
+                    "sourceImage": {
+                        "id": "[variables('sourceImageName')]"
                     },
-                   "osDisk" : {
-                        "name": "osdisk",
-                        "vhd": {
-                            "uri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),variables('masterVMName'),'.vhd')]"
-                        },
-                        "caching": "ReadWrite",
-                        "createOption": "FromImage"
-                    }
-                },                
+                    "destinationVhdsContainer": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/')]"
+                },
                 "networkProfile": {
                     "networkInterfaces": [
                         {
@@ -274,21 +270,11 @@
                     "adminPassword": "[parameters('adminPassword')]"
                 },
                 "storageProfile": {
-                    "imageReference": {
-                        "publisher": "[variables('imagePublisher')]",
-                        "offer": "[variables('imageOffer')]",
-                        "sku" : "[variables('ubuntuOSVersion')]",
-                        "version":"latest"
+                    "sourceImage": {
+                        "id": "[variables('sourceImageName')]"
                     },
-                   "osDisk" : {
-                        "name": "osdisk",
-                        "vhd": {
-                            "uri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),variables('workerVMName'),copyindex(),'.vhd')]"
-                        },
-                        "caching": "ReadWrite",
-                        "createOption": "FromImage"
-                    }
-                },                
+                    "destinationVhdsContainer": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/')]"
+                },
                 "networkProfile": {
                     "networkInterfaces": [
                         {
