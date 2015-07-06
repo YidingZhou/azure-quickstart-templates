@@ -64,7 +64,6 @@
         }
     },
     "variables": {
-        //"sourceImageName": "[concat('/',parameters('subscriptionId'),'/services/images/',parameters('vmSourceImageName'))]",
         "sourceImageName": "[concat('/',parameters('subscriptionId'),'/services/images/',parameters('vmSourceImageName'))]",
         "vmStorageAccountContainerName": "vhd",
         "publicIPAddressType": "Dynamic",
