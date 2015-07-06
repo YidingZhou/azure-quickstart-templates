@@ -64,7 +64,7 @@
         }
     },
     "variables": {
-        "sourceImageName": "[concat('/',parameters('subscriptionId'),'/services/images/',parameters('vmSourceImageName'))]",
+        "userImageName" : "https://caedata.blob.core.windows.net/rdma/rdmafinallargenodecounttestimage-os-2015-06-26.vhd",        
         "vmStorageAccountContainerName": "vhd",
         "publicIPAddressType": "Dynamic",
         "publicIPAddressName": "publicips",
@@ -185,16 +185,16 @@
                     "adminPassword": "[parameters('adminPassword')]"
                 },
                 "storageProfile": {
-                    "sourceImage": {
-                        "id": "[variables('sourceImageName')]"
-                    },
                     "osDisk": {
                         "name": "osdisk",
+                        "osType": "Windows",
+                        "image":{
+                          "uri": "[variables('userImageName')]"
+                        },
                         "vhd": {
                             "uri": "[concat('http://', parameters('newStorageAccountName'), '.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/', variables('masterVMName'), '.vhd')]"
                         },
-                        "caching": "ReadWrite",
-                        "createOption": "FromImage"
+                        "caching": "ReadWrite"
                     }
                 },
                 "networkProfile": {
@@ -276,16 +276,16 @@
                     "adminPassword": "[parameters('adminPassword')]"
                 },
                 "storageProfile": {
-                    "sourceImage": {
-                        "id": "[variables('sourceImageName')]"
-                    },
                     "osDisk": {
                         "name": "osdisk",
-                        "vhd": {
-                            "uri": "[concat('http://', parameters('newStorageAccountName'), '.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/', variables('workerVMName'), copyindex(), '.vhd')]"
+                        "osType": "Windows",
+                        "image":{
+                          "uri": "[variables('userImageName')]"
                         },
-                        "caching": "ReadWrite",
-                        "createOption": "FromImage"
+                        "vhd": {
+                            "uri": "[concat('http://', parameters('newStorageAccountName'), '.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/', variables('masterVMName'), '.vhd')]"
+                        },
+                        "caching": "ReadWrite"
                     }
                 },
                 "networkProfile": {
