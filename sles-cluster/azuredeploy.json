@@ -167,7 +167,7 @@
             }
         },
         {
-            "apiVersion": "2015-05-01-preview",
+            "apiVersion": "2014-12-01-preview",
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[variables('masterVMName')]",
             "location": "[parameters('location')]",
@@ -186,7 +186,7 @@
                 },
                 "storageProfile": {
                     "osDisk": {
-                        "name": "[concat(variables('masterVMName'), 'osdisk')]",
+                        "name": "[concat(variables('masterVMName'), '-osdisk')]",
                         "osType": "Linux",
                         "caching": "ReadWrite",
                         "image":{
