@@ -182,13 +182,13 @@
                         "sku" : "12",
                         "version":"latest"
                     },
-                    "osDisk": {
-                        "name": "[concat(variables('masterVMName'), '-osdisk')]",
-                        "osType": "Linux",
-                        "caching": "ReadWrite",
+                   "osDisk" : {
+                        "name": "osdisk",
                         "vhd": {
-                            "uri": "[concat('http://', parameters('newStorageAccountName'), '.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/', variables('masterVMName'), '.vhd')]"
-                        }
+                            "uri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),variables('masterVMName'),'.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
                     }
                 },
                 "networkProfile": {
@@ -276,13 +276,13 @@
                         "sku" : "12",
                         "version":"latest"
                     },
-                    "osDisk": {
-                        "name": "[concat(variables('workerVMName'), copyindex(), 'osdisk' )]",
-                        "osType": "Linux",
-                        "caching": "ReadWrite",
+                   "osDisk" : {
+                        "name": "osdisk",
                         "vhd": {
-                            "uri": "[concat('http://', parameters('newStorageAccountName'), '.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/', variables('workerVMName'), copyindex(), '.vhd')]"
-                        }
+                            "uri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),variables('workerVMName'),copyindex(),'.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
                     }
                 },
                 "networkProfile": {
