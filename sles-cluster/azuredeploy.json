@@ -54,17 +54,8 @@
                 "description": "This is the location where the availability set will be deployed"
             }
         },
-        "vmSourceImageName": {
-            "type": "string",
-            "defaultValue": "rdmafinallargenodecounttestimage-os-2015-06-26"
-        },
-        "subscriptionId":{
-            "type": "string",
-            "defaultValue": "e5949e74-089c-4cca-8ebf-90ee9fa01a70"            
-        }
     },
     "variables": {
-        "userImageName" : "http://caedata.blob.core.windows.net/rdma/rdmafinallargenodecounttestimage-os-2015-06-26.vhd",        
         "vmStorageAccountContainerName": "vhd",
         "publicIPAddressType": "Dynamic",
         "publicIPAddressName": "publicips",
