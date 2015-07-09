@@ -53,7 +53,7 @@
             "metadata": {
                 "description": "This is the location where the availability set will be deployed"
             }
-        },
+        }
     },
     "variables": {
         "vmStorageAccountContainerName": "vhd",
