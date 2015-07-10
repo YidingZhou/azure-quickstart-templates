@@ -59,6 +59,7 @@
     },
     "variables": {
         "vmStorageAccountContainerName": "vhd",
+        "availabilitySetName": "myAvSet",
         "publicIPAddressType": "Dynamic",
         "publicIPAddressName": "publicips",
         "masterVMName": "master",
@@ -98,6 +99,13 @@
             "properties": {
                 "accountType": "[variables('storageAccountType')]"
             }
+        },
+        {
+            "type": "Microsoft.Compute/availabilitySets",
+            "name": "[variables('availabilitySetName')]",
+            "apiVersion": "2015-05-01-preview",
+            "location": "[resourceGroup().location]",
+            "properties": { }
         },
         {
             "apiVersion": "2015-05-01-preview",
@@ -166,9 +174,13 @@
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', parameters('newStorageAccountName'))]",
-                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]",
+                "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]"
             ],
             "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName'))]"
+                },
                 "hardwareProfile": {
                     "vmSize": "[parameters('vmSize')]"
                 },
@@ -256,13 +268,17 @@
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', parameters('newStorageAccountName'))]",
-                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), 'worker', copyindex())]"
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), 'worker', copyindex())]",
+                "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]"
             ],
             "copy": {
                 "name": "foo",
                 "count": "[parameters('scaleNumber')]"
             },
             "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName'))]"
+                },                
                 "hardwareProfile": {
                     "vmSize": "[parameters('vmSize')]"
                 },
