@@ -185,9 +185,9 @@
                         "version":"latest"
                     },
                    "osDisk" : {
-                        "name": "osdisk",
+                        "name": "osdiskmaster",
                         "vhd": {
-                            "uri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/', variables('masterVMName'),'.vhd')]"
+                            "uri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/', 'osdisk', variables('masterVMName'),'.vhd')]"
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
@@ -279,9 +279,9 @@
                         "version":"latest"
                     },
                    "osDisk" : {
-                        "name": "osdisk",
+                        "name": "[concat('osdisk', variables('workerVMName'), copyindex())]",
                         "vhd": {
-                            "uri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('workerVMName'),copyindex(),'.vhd')]"
+                            "uri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/', 'osdisk', variables('workerVMName'),copyindex(),'.vhd')]"
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
