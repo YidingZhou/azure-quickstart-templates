@@ -30,4 +30,35 @@ ADMIN_USERNAME=$7
 ADMIN_PASSWORD=$8
 TEMPLATE_BASE=$9
 
+# Update master node
+echo $MASTER_IP $MASTER_NAME >> /etc/hosts
+echo $MASTER_IP $MASTER_NAME > /tmp/hosts.$$
+
+# Update ssh config file to ignore unknow host
+# Note all settings are for azureuser, NOT root
+sudo -u $ADMIN_USERNAME sh -c "mkdir /home/$ADMIN_USERNAME/.ssh/;echo Host worker\* > /home/$ADMIN_USERNAME/.ssh/config; echo StrictHostKeyChecking no >> /home/$ADMIN_USERNAME/.ssh/config; echo UserKnownHostsFile=/dev/null >> /home/$ADMIN_USERNAME/.ssh/config"
+
+# Generate a set of sshkey under /honme/azureuser/.ssh if there is not one yet
+if ! [ -f /home/$ADMIN_USERNAME/.ssh/id_rsa ]; then
+    sudo -u $ADMIN_USERNAME sh -c "ssh-keygen -f /home/$ADMIN_USERNAME/.ssh/id_rsa -t rsa -N ''"
+fi
+
+# Install sshpass to automate ssh-copy-id action
+zypper --quiet --non-interactive addrepo http://download.opensuse.org/repositories/home:Strahlex/SLE_12/home:Strahlex.repo
+zypper --quiet --non-interactive install sshpass
+
+# Loop through all worker nodes, update hosts file and copy ssh public key to it
+# The script make the assumption that the node is called %WORKER+<index> and have
+# static IP in sequence order
+i=0
+while [ $i -lt $NUM_OF_VM ]
+do
+   workerip=`expr $i + $WORKER_IP_START`
+   echo 'I update host - '$WORKER_NAME$i >> /tmp/azuredeploy.log.$$ 2>&1
+   echo $WORKER_IP_BASE$workerip $WORKER_NAME$i >> /etc/hosts
+   echo $WORKER_IP_BASE$workerip $WORKER_NAME$i >> /tmp/hosts.$$
+   sudo -u $ADMIN_USERNAME sh -c "sshpass -p '$ADMIN_PASSWORD' ssh-copy-id $WORKER_NAME$i"
+   i=`expr $i + 1`
+done
+
 exit 0
