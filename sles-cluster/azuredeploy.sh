@@ -45,7 +45,7 @@ fi
 
 # Install sshpass to automate ssh-copy-id action
 zypper --quiet --non-interactive addrepo http://download.opensuse.org/repositories/home:Strahlex/SLE_12/home:Strahlex.repo
-zypper --quiet --non-interactive install sshpass
+zypper --quiet --non-interactive --gpg-auto-import-keys install sshpass
 
 # Loop through all worker nodes, update hosts file and copy ssh public key to it
 # The script make the assumption that the node is called %WORKER+<index> and have
