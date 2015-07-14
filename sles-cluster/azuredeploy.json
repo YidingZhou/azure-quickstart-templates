@@ -220,7 +220,8 @@
             "name": "[concat(variables('masterVMName'), '/Installation')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', variables('masterVMName'))]"
+                "[concat('Microsoft.Compute/virtualMachines/', variables('masterVMName'))]",
+                "[concat('Microsoft.Compute/virtualMachines/', variables('workerVMName'), copyindex())]"
             ],
             "properties": {
                 "publisher": "Microsoft.OSTCExtensions",
