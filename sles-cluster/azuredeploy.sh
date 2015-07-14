@@ -55,6 +55,14 @@ i=0
 while [ $i -lt $NUM_OF_VM ]
 do
    workerip=`expr $i + $WORKER_IP_START`
+   SECONDS=0
+   until nc -vzw 2 $WORKER_NAME$i 22; 
+   do 
+      if [SECONDS > 300]; then
+        break
+      fi        
+      sleep 3; 
+   done
    echo 'I update host - '$WORKER_NAME$i >> /tmp/azuredeploy.log.$$ 2>&1
    echo $WORKER_IP_BASE$workerip $WORKER_NAME$i >> /etc/hosts
    sudo -u $ADMIN_USERNAME sh -c "sshpass -p '$ADMIN_PASSWORD' ssh-copy-id $WORKER_NAME$i"
