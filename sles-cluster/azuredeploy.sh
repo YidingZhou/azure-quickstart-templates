@@ -36,11 +36,12 @@ echo $MASTER_IP $MASTER_NAME > /tmp/hosts.$$
 
 # Update ssh config file to ignore unknow host
 # Note all settings are for azureuser, NOT root
-sudo -u $ADMIN_USERNAME sh -c "mkdir /home/$ADMIN_USERNAME/.ssh/;echo Host worker\* > /home/$ADMIN_USERNAME/.ssh/config; echo StrictHostKeyChecking no >> /home/$ADMIN_USERNAME/.ssh/config; echo UserKnownHostsFile=/dev/null >> /home/$ADMIN_USERNAME/.ssh/config"
+sudo -u $ADMIN_USERNAME sh -c "mkdir /home/$ADMIN_USERNAME/.ssh/;echo Host master worker\* > /home/$ADMIN_USERNAME/.ssh/config; echo StrictHostKeyChecking no >> /home/$ADMIN_USERNAME/.ssh/config; echo UserKnownHostsFile=/dev/null >> /home/$ADMIN_USERNAME/.ssh/config"
 
 # Generate a set of sshkey under /honme/azureuser/.ssh if there is not one yet
 if ! [ -f /home/$ADMIN_USERNAME/.ssh/id_rsa ]; then
     sudo -u $ADMIN_USERNAME sh -c "ssh-keygen -f /home/$ADMIN_USERNAME/.ssh/id_rsa -t rsa -N ''"
+    sudo -u $ADMIN_USERNAME sh -c "cp /home/$ADMIN_USERNAME/.ssh/id_rsa.pub /home/$ADMIN_USERNAME/.ssh/authorized_keys"
 fi
 
 # Install sshpass to automate ssh-copy-id action
@@ -58,6 +59,12 @@ do
    echo $WORKER_IP_BASE$workerip $WORKER_NAME$i >> /etc/hosts
    echo $WORKER_IP_BASE$workerip $WORKER_NAME$i >> /tmp/hosts.$$
    sudo -u $ADMIN_USERNAME sh -c "sshpass -p '$ADMIN_PASSWORD' ssh-copy-id $WORKER_NAME$i"
+
+   worker=$WORKER_NAME$i
+   echo "SCP to $worker"  >> /tmp/azuredeploy.log.$$ 2>&1 
+   sudo -u $ADMIN_USERNAME scp /home/$ADMIN_USERNAME/.ssh/config $ADMIN_USERNAME@$worker:/home/$ADMIN_USERNAME/.ssh/config >> /tmp/azuredeploy.log.$$ 2>&1
+   sudo -u $ADMIN_USERNAME scp /home/$ADMIN_USERNAME/.ssh/id_rsa $ADMIN_USERNAME@$worker:/home/$ADMIN_USERNAME/.ssh/id_rsa >> /tmp/azuredeploy.log.$$ 2>&1
+
    i=`expr $i + 1`
 done
 
