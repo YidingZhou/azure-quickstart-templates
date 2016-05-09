@@ -253,12 +253,13 @@
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').subnet.dse.name)]",
     "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
     "repoUri": "https://raw.githubusercontent.com/YidingZhou/azure-quickstart-templates/matlab/matlab-cluster/",
-    "scriptUrl": "[concat(variables('repoUri'), 'scripts/')]",    
+    "scriptUri": "[concat(variables('repoUri'), 'scripts/')]",    
     "scriptName": "[concat(variables('scriptUri'), 'private_worker_vm_setup.ps1')]",
     "clientScriptName": "[concat(variables('scriptUri'), 'private_client_vm_setup.ps1')]",
     "installationCLI": "powershell -ExecutionPolicy Unrestricted -file private_worker_vm_setup.ps1 shim",
     "clientInstallationCLI": "powershell -ExecutionPolicy Unrestricted -file private_client_vm_setup.ps1",
     "nsgTemplateUrl": "[concat(variables('repoUri'), 'nsg-private.json')]",
+    "networkTemplateUrl": "[concat(variables('repoUri'), 'network.json')]",
     "networkSecurityGroupName": "NSGMJS",
     "imageUri": "[parameters('imageUri')]",
     "vhdContainer": "[parameters('vhdContainer')]"
@@ -277,6 +278,26 @@
         "parameters": {
           "nsgName": {
             "value": "[variables('networkSecurityGroupName')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "network",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('networkTemplateUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "nsgName": {
+            "value": "[variables('networkSecurityGroupName')]"
+          },
+          "networkSettings": {
+            "value": "[variables('networkSettings')]"
           }
         }
       }
