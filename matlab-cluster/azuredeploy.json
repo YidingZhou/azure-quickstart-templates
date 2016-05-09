@@ -286,6 +286,9 @@
       "name": "network",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', 'nsg')]"
+      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {
