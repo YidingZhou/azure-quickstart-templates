@@ -332,50 +332,6 @@
           }
         }
       }
-    },
-    {
-      "name": "vm",
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2015-01-01",
-      "dependsOn": [
-        "[concat('Microsoft.Resources/deployments/', 'nic')]"
-      ],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('vmTemplateUrl')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
-          "dnsLabelPrefix": {
-            "value": "[parameters('dnsLabelPrefix')]"
-          },
-          "numWorkerVms": {
-            "value": "[parameters('numWorkerVms')]"
-          },
-          "adminUserName": {
-            "value": "[parameters('adminUserName')]"
-          },
-          "adminPassword": {
-            "value": "[parameters('adminPassword')]"
-          },
-          "vmSizeClient": {
-            "value": "[parameters('vmSizeClient')]"
-          },
-          "vmSizeMJS": {
-            "value": "[parameters('vmSizeMJS')]"
-          },
-          "vmSizeWorker": {
-            "value": "[parameters('vmSizeWorker')]"
-          },
-          "imageUri": {
-            "value": "[parameters('imageUri')]"
-          },
-          "vhdContainer": {
-            "value": "[parameters('vhdContainer')]"
-          }
-        }
-      }
     }
   ]
 }
