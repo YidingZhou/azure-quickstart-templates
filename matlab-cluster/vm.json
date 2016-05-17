@@ -1,0 +1,234 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUserName": {
+      "type": "string"
+    },
+    "adminPassword": {
+      "type": "securestring"
+    },
+    "vmSizeClient": {
+      "type": "string"
+    },
+    "vmSizeMJS": {
+      "type": "string"
+    },
+    "vmSizeWorker": {
+      "type": "string"
+    },
+    "imageUri": {
+      "type": "string"
+    },
+    "vhdContainer": {
+      "type": "string"
+    },
+    "numWorkerVms": {
+      "type": "int"
+    }
+  },
+  "variables": {
+    "clientVMName": "client",
+    "masterVMName": "master",
+    "workerVMName": "worker",
+    "scriptUri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/matlab-cluster/",
+    "scriptName": "[concat(variables('scriptUri'), 'scripts/private_worker_vm_setup.ps1')]",
+    "clientScriptName": "[concat(variables('scriptUri'), 'scripts/private_client_vm_setup.ps1')]",
+    "installationCLI": "powershell -ExecutionPolicy Unrestricted -file private_worker_vm_setup.ps1 shim",
+    "clientInstallationCLI": "powershell -ExecutionPolicy Unrestricted -file private_client_vm_setup.ps1",
+    "nicName": "nic"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('clientVMName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), '_client')]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSizeClient')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('clientVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Windows",
+            "name": "clientosdisk.vhd",
+            "createOption": "FromImage",
+            "image": {
+              "uri": "[parameters('imageUri')]"
+            },
+            "vhd": {
+              "uri": "[concat(parameters('vhdContainer'), 'client.vhd')]"
+            },
+            "caching": "ReadWrite"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicName'), '_client'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2015-06-15",
+      "name": "[concat(variables('clientVMName'), '/Installation')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('clientVMName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.5",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('clientScriptName')]"
+          ],
+          "commandToExecute": "[variables('clientInstallationCLI')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('masterVMName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSizeMJS')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('masterVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Windows",
+            "name": "masterosdisk.vhd",
+            "createOption": "FromImage",
+            "image": {
+              "uri": "[parameters('imageUri')]"
+            },
+            "vhd": {
+              "uri": "[concat(parameters('vhdContainer'), 'master.vhd')]"
+            },
+            "caching": "ReadWrite"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2015-06-15",
+      "name": "[concat(variables('masterVMName'), '/Installation')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('masterVMName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.5",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('scriptName')]"
+          ],
+          "commandToExecute": "[concat(variables('installationCLI'), ' ', parameters('dnsLabelPrefix'), ' ', resourceGroup().location, ' master ', parameters('numWorkerOnMJS'))]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('workerVMName'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), 'worker', copyindex())]"
+      ],
+      "copy": {
+        "name": "foo",
+        "count": "[parameters('numWorkerVms')]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSizeWorker')]"
+        },
+        "osProfile": {
+          "computername": "[concat(variables('workerVMName'), copyindex())]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Windows",
+            "name": "workerosdisk.vhd",
+            "createOption": "FromImage",
+            "image": {
+              "uri": "[parameters('imageUri')]"
+            },
+            "vhd": {
+              "uri": "[concat(parameters('vhdContainer'), 'worker.', copyindex(), '.vhd')]"
+            },
+            "caching": "ReadWrite"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName'), 'worker', copyindex()))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('workerVMName'), copyindex(), '/Installation')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('workerVMName'), copyindex())]"
+      ],
+      "copy": {
+        "name": "foo",
+        "count": "[parameters('numWorkerVms')]"
+      },
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.5",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('scriptName')]"
+          ],
+          "commandToExecute": "[concat(variables('installationCLI'), ' ', parameters('dnsLabelPrefix'), ' ', resourceGroup().location, ' ', parameters('numWorkersWorker'))]"
+        }
+      }
+    }
+  ]
+}

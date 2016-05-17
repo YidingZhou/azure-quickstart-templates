@@ -253,13 +253,15 @@
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').subnet.dse.name)]",
     "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
     "repoUri": "https://raw.githubusercontent.com/YidingZhou/azure-quickstart-templates/matlab/matlab-cluster/",
-    "scriptUri": "[concat(variables('repoUri'), 'scripts/')]",    
+    "scriptUri": "[concat(variables('repoUri'), 'scripts/')]",
     "scriptName": "[concat(variables('scriptUri'), 'private_worker_vm_setup.ps1')]",
     "clientScriptName": "[concat(variables('scriptUri'), 'private_client_vm_setup.ps1')]",
     "installationCLI": "powershell -ExecutionPolicy Unrestricted -file private_worker_vm_setup.ps1 shim",
     "clientInstallationCLI": "powershell -ExecutionPolicy Unrestricted -file private_client_vm_setup.ps1",
     "nsgTemplateUrl": "[concat(variables('repoUri'), 'nsg-private.json')]",
     "networkTemplateUrl": "[concat(variables('repoUri'), 'network.json')]",
+    "nicTemplateUrl": "[concat(variables('repoUri'), 'nic-private.json')]",
+    "vmTemplateUrl": "[concat(variables('repoUri'), 'vm.json')]",
     "networkSecurityGroupName": "NSGMJS",
     "imageUri": "[parameters('imageUri')]",
     "vhdContainer": "[parameters('vhdContainer')]"
@@ -301,6 +303,76 @@
           },
           "networkSettings": {
             "value": "[variables('networkSettings')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "nic",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', 'network')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('nicTemplateUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "dnsLabelPrefix": {
+            "value": "[parameters('dnsLabelPrefix')]"
+          },
+          "networkSettings": {
+            "value": "[variables('networkSettings')]"
+          },
+          "numWorkerVms": {
+            "value": "[parameters('numWorkerVms')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "vm",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', 'nic')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vmTemplateUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "dnsLabelPrefix": {
+            "value": "[parameters('dnsLabelPrefix')]"
+          },
+          "numWorkerVms": {
+            "value": "[parameters('numWorkerVms')]"
+          },
+          "adminUserName": {
+            "value": "[parameters('adminUserName')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "vmSizeClient": {
+            "value": "[parameters('vmSizeClient')]"
+          },
+          "vmSizeMJS": {
+            "value": "[parameters('vmSizeMJS')]"
+          },
+          "vmSizeWorker": {
+            "value": "[parameters('vmSizeWorker')]"
+          },
+          "imageUri": {
+            "value": "[parameters('imageUri')]"
+          },
+          "vhdContainer": {
+            "value": "[parameters('vhdContainer')]"
           }
         }
       }
