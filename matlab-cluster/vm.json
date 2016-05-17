@@ -163,9 +163,6 @@
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(variables('workerVMName'), copyindex())]",
       "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), 'worker', copyindex())]"
-      ],
       "copy": {
         "name": "foo",
         "count": "[parameters('numWorkerVms')]"
