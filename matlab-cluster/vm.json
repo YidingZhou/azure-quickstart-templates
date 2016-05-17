@@ -28,6 +28,12 @@
     },
     "numWorkerVms": {
       "type": "int"
+    },
+    "numWorkerOnMJS": {
+      "type": "int",
+    },
+    "numWorkersWorker": {
+      "type": "int",
     }
   },
   "variables": {

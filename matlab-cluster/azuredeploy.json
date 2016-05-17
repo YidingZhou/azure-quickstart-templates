@@ -368,6 +368,12 @@
           "vmSizeWorker": {
             "value": "[parameters('vmSizeWorker')]"
           },
+          "numWorkerOnMJS": {
+            "value": "[parameters('numWorkerOnMJS')]"
+          },
+          "numWorkersWorker": {
+            "value": "[parameters('numWorkersWorker')]"
+          },
           "imageUri": {
             "value": "[parameters('imageUri')]"
           },
