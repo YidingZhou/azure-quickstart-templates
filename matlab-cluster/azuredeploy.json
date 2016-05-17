@@ -252,344 +252,134 @@
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('networkSettings').virtualNetworkName)]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').subnet.dse.name)]",
     "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
-    "scriptUri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/matlab-cluster/",
-    "scriptName": "[concat(variables('scriptUri'), 'scripts/private_worker_vm_setup.ps1')]",
-    "clientScriptName": "[concat(variables('scriptUri'), 'scripts/private_client_vm_setup.ps1')]",
+    "repoUri": "https://raw.githubusercontent.com/YidingZhou/azure-quickstart-templates/matlab/matlab-cluster/",
+    "scriptUri": "[concat(variables('repoUri'), 'scripts/')]",
+    "scriptName": "[concat(variables('scriptUri'), 'private_worker_vm_setup.ps1')]",
+    "clientScriptName": "[concat(variables('scriptUri'), 'private_client_vm_setup.ps1')]",
     "installationCLI": "powershell -ExecutionPolicy Unrestricted -file private_worker_vm_setup.ps1 shim",
     "clientInstallationCLI": "powershell -ExecutionPolicy Unrestricted -file private_client_vm_setup.ps1",
+    "nsgTemplateUrl": "[concat(variables('repoUri'), 'nsg-private.json')]",
+    "networkTemplateUrl": "[concat(variables('repoUri'), 'network.json')]",
+    "nicTemplateUrl": "[concat(variables('repoUri'), 'nic-private.json')]",
+    "vmTemplateUrl": "[concat(variables('repoUri'), 'vm.json')]",
     "networkSecurityGroupName": "NSGMJS",
     "imageUri": "[parameters('imageUri')]",
     "vhdContainer": "[parameters('vhdContainer')]"
   },
   "resources": [
     {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/networkSecurityGroups",
-      "name": "[variables('networkSecurityGroupName')]",
-      "location": "[resourceGroup().location]",
+      "name": "nsg",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
       "properties": {
-        "securityRules": [
-          {
-            "name": "rdp",
-            "properties": {
-              "description": "Allow RDP",
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "3389",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 200,
-              "direction": "Inbound"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('networkSettings').virtualNetworkName]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]"
-      ],
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('networkSettings').addressPrefix]"
-          ]
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('nsgTemplateUrl')]",
+          "contentVersion": "1.0.0.0"
         },
-        "subnets": [
-          {
-            "name": "[variables('networkSettings').subnet.dse.name]",
-            "properties": {
-              "addressPrefix": "[variables('networkSettings').subnet.dse.prefix]",
-              "networkSecurityGroup": {
-                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
-              }
-            }
+        "parameters": {
+          "nsgName": {
+            "value": "[variables('networkSecurityGroupName')]"
           }
-        ]
-      }
-    },
-    {
-      "type": "Microsoft.Network/publicIPAddresses",
-      "apiVersion": "2015-06-15",
-      "name": "[variables('publicIPAddressName')]",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('dnsLabelPrefix')]"
         }
       }
     },
     {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(variables('nicName'), '_client')]",
-      "location": "[resourceGroup().location]",
+      "name": "network",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
       "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', variables('networkSettings').virtualNetworkName)]"
+        "[concat('Microsoft.Resources/deployments/', 'nsg')]"
       ],
       "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
-            "properties": {
-              "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[variables('networkSettings').statics.client]",
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
-              },
-              "subnet": {
-                "id": "[variables('subnetRef')]"
-              }
-            }
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('networkTemplateUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "nsgName": {
+            "value": "[variables('networkSecurityGroupName')]"
+          },
+          "networkSettings": {
+            "value": "[variables('networkSettings')]"
           }
-        ]
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Compute/virtualMachines",
-      "name": "[variables('clientVMName')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), '_client')]"
-      ],
-      "properties": {
-        "hardwareProfile": {
-          "vmSize": "[parameters('vmSizeClient')]"
-        },
-        "osProfile": {
-          "computerName": "[variables('clientVMName')]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
-        },
-        "storageProfile": {
-          "osDisk": {
-            "osType": "Windows",
-            "name": "clientosdisk.vhd",
-            "createOption": "FromImage",
-            "image": {
-              "uri": "[variables('imageUri')]"
-            },
-            "vhd": {
-              "uri": "[concat(variables('vhdContainer'), 'client.vhd')]"
-            },
-            "caching": "ReadWrite"
-          }
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicName'), '_client'))]"
-            }
-          ]
         }
       }
     },
     {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "apiVersion": "2015-06-15",
-      "name": "[concat(variables('clientVMName'), '/Installation')]",
-      "location": "[resourceGroup().location]",
+      "name": "nic",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
       "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('clientVMName'))]"
+        "[concat('Microsoft.Resources/deployments/', 'network')]"
       ],
       "properties": {
-        "publisher": "Microsoft.Compute",
-        "type": "CustomScriptExtension",
-        "typeHandlerVersion": "1.5",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "fileUris": [
-            "[variables('clientScriptName')]"
-          ],
-          "commandToExecute": "[variables('clientInstallationCLI')]"
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('nicTemplateUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "dnsLabelPrefix": {
+            "value": "[parameters('dnsLabelPrefix')]"
+          },
+          "networkSettings": {
+            "value": "[variables('networkSettings')]"
+          },
+          "numWorkerVms": {
+            "value": "[parameters('numWorkerVms')]"
+          }
         }
       }
     },
     {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/networkInterfaces",
-      "name": "[variables('nicName')]",
-      "location": "[resourceGroup().location]",
+      "name": "vm",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('networkSettings').virtualNetworkName)]"
+        "[concat('Microsoft.Resources/deployments/', 'nic')]"
       ],
       "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
-            "properties": {
-              "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[variables('networkSettings').statics.master]",
-              "subnet": {
-                "id": "[variables('subnetRef')]"
-              }
-            }
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vmTemplateUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "dnsLabelPrefix": {
+            "value": "[parameters('dnsLabelPrefix')]"
+          },
+          "numWorkerVms": {
+            "value": "[parameters('numWorkerVms')]"
+          },
+          "adminUserName": {
+            "value": "[parameters('adminUserName')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "vmSizeClient": {
+            "value": "[parameters('vmSizeClient')]"
+          },
+          "vmSizeMJS": {
+            "value": "[parameters('vmSizeMJS')]"
+          },
+          "vmSizeWorker": {
+            "value": "[parameters('vmSizeWorker')]"
+          },
+          "numWorkerOnMJS": {
+            "value": "[parameters('numWorkerOnMJS')]"
+          },
+          "numWorkersWorker": {
+            "value": "[parameters('numWorkersWorker')]"
+          },
+          "imageUri": {
+            "value": "[parameters('imageUri')]"
+          },
+          "vhdContainer": {
+            "value": "[parameters('vhdContainer')]"
           }
-        ]
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Compute/virtualMachines",
-      "name": "[variables('masterVMName')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
-      ],
-      "properties": {
-        "hardwareProfile": {
-          "vmSize": "[parameters('vmSizeMJS')]"
-        },
-        "osProfile": {
-          "computerName": "[variables('masterVMName')]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
-        },
-        "storageProfile": {
-          "osDisk": {
-            "osType": "Windows",
-            "name": "masterosdisk.vhd",
-            "createOption": "FromImage",
-            "image": {
-              "uri": "[variables('imageUri')]"
-            },
-            "vhd": {
-              "uri": "[concat(variables('vhdContainer'), 'master.vhd')]"
-            },
-            "caching": "ReadWrite"
-          }
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "apiVersion": "2015-06-15",
-      "name": "[concat(variables('masterVMName'), '/Installation')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('masterVMName'))]"
-      ],
-      "properties": {
-        "publisher": "Microsoft.Compute",
-        "type": "CustomScriptExtension",
-        "typeHandlerVersion": "1.5",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "fileUris": [
-            "[variables('scriptName')]"
-          ],
-          "commandToExecute": "[concat(variables('installationCLI'), ' ', parameters('dnsLabelPrefix'), ' ', resourceGroup().location, ' master ', parameters('numWorkerOnMJS'))]"
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(variables('nicName'), 'worker', copyindex())]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('networkSettings').virtualNetworkName)]"
-      ],
-      "copy": {
-        "name": "foo",
-        "count": "[parameters('numWorkerVms')]"
-      },
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
-            "properties": {
-              "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[concat(variables('networkSettings').statics.workerRange.base, copyindex(variables('networkSettings').statics.workerRange.start))]",
-              "subnet": {
-                "id": "[variables('subnetRef')]"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(variables('workerVMName'), copyindex())]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), 'worker', copyindex())]"
-      ],
-      "copy": {
-        "name": "foo",
-        "count": "[parameters('numWorkerVms')]"
-      },
-      "properties": {
-        "hardwareProfile": {
-          "vmSize": "[parameters('vmSizeWorker')]"
-        },
-        "osProfile": {
-          "computername": "[concat(variables('workerVMName'), copyindex())]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
-        },
-        "storageProfile": {
-          "osDisk": {
-            "osType": "Windows",
-            "name": "workerosdisk.vhd",
-            "createOption": "FromImage",
-            "image": {
-              "uri": "[variables('imageUri')]"
-            },
-            "vhd": {
-              "uri": "[concat(variables('vhdContainer'), 'worker.', copyindex(), '.vhd')]"
-            },
-            "caching": "ReadWrite"
-          }
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName'), 'worker', copyindex()))]"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('workerVMName'), copyindex(), '/Installation')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('workerVMName'), copyindex())]"
-      ],
-      "copy": {
-        "name": "foo",
-        "count": "[parameters('numWorkerVms')]"
-      },
-      "properties": {
-        "publisher": "Microsoft.Compute",
-        "type": "CustomScriptExtension",
-        "typeHandlerVersion": "1.5",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "fileUris": [
-            "[variables('scriptName')]"
-          ],
-          "commandToExecute": "[concat(variables('installationCLI'), ' ', parameters('dnsLabelPrefix'), ' ', resourceGroup().location, ' ', parameters('numWorkersWorker'))]"
         }
       }
     }
