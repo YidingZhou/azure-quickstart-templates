@@ -333,7 +333,6 @@
         }
       }
     },
-    ,
     {
       "name": "vm",
       "type": "Microsoft.Resources/deployments",
@@ -377,6 +376,6 @@
           }
         }
       }
-    }    
+    }
   ]
 }
