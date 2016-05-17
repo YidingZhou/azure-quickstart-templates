@@ -16,6 +16,7 @@
     "publicIPAddressType": "Dynamic",
     "publicIPAddressName": "publicips",
     "nicName": "nic",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',parameters('networkSettings').virtualNetworkName)]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('networkSettings').subnet.dse.name)]"
   },
   "resources": [
