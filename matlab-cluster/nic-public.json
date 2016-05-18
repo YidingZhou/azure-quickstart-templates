@@ -62,6 +62,10 @@
       "apiVersion": "2015-06-15",
       "name": "[concat(variables('publicIPAddressName'), '_worker', copyindex())]",
       "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "foo",
+        "count": "[parameters('numWorkerVms')]"
+      },
       "properties": {
         "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
         "dnsSettings": {
