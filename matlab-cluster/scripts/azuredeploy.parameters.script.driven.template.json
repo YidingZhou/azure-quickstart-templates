@@ -27,7 +27,7 @@
       "value": [[nbOfWorker]]
     },
     "public": {
-      "value": [[Public]]
+      "value": "[[Public]]"
     },
     "imageUri": {
       "value": "[[imageUri]]"
