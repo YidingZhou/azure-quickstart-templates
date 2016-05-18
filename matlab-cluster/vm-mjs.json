@@ -11,9 +11,6 @@
     "adminPassword": {
       "type": "securestring"
     },
-    "vmSizeClient": {
-      "type": "string"
-    },
     "vmSizeMJS": {
       "type": "string"
     },
@@ -37,75 +34,14 @@
     }
   },
   "variables": {
-    "clientVMName": "client",
     "masterVMName": "master",
     "workerVMName": "worker",
     "scriptUri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/matlab-cluster/",
     "scriptName": "[concat(variables('scriptUri'), 'scripts/private_worker_vm_setup.ps1')]",
-    "clientScriptName": "[concat(variables('scriptUri'), 'scripts/private_client_vm_setup.ps1')]",
     "installationCLI": "powershell -ExecutionPolicy Unrestricted -file private_worker_vm_setup.ps1 shim",
-    "clientInstallationCLI": "powershell -ExecutionPolicy Unrestricted -file private_client_vm_setup.ps1",
     "nicName": "nic"
   },
   "resources": [
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Compute/virtualMachines",
-      "name": "[variables('clientVMName')]",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "hardwareProfile": {
-          "vmSize": "[parameters('vmSizeClient')]"
-        },
-        "osProfile": {
-          "computerName": "[variables('clientVMName')]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
-        },
-        "storageProfile": {
-          "osDisk": {
-            "osType": "Windows",
-            "name": "clientosdisk.vhd",
-            "createOption": "FromImage",
-            "image": {
-              "uri": "[parameters('imageUri')]"
-            },
-            "vhd": {
-              "uri": "[concat(parameters('vhdContainer'), 'client.vhd')]"
-            },
-            "caching": "ReadWrite"
-          }
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicName'), '_client'))]"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "apiVersion": "2015-06-15",
-      "name": "[concat(variables('clientVMName'), '/Installation')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('clientVMName'))]"
-      ],
-      "properties": {
-        "publisher": "Microsoft.Compute",
-        "type": "CustomScriptExtension",
-        "typeHandlerVersion": "1.5",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "fileUris": [
-            "[variables('clientScriptName')]"
-          ],
-          "commandToExecute": "[variables('clientInstallationCLI')]"
-        }
-      }
-    },
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines",

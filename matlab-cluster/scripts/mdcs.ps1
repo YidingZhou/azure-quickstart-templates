@@ -1,7 +1,7 @@
 # Utility to setup/delete/list/pause/resume mdcs cluster
 
 # Global configuration
-$script:GITHUB_BASE_URL = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/matlab-cluster/"
+$script:GITHUB_BASE_URL = "https://raw.githubusercontent.com/YidingZhou/azure-quickstart-templates/master/matlab-cluster/"
 
 function PrepAzureContext() {
   echo "Validating Azure logon..."
@@ -27,7 +27,7 @@ function mdcs_create($p) {
   }
 
   function parse_init($p) {
-    $script:inifile_entries = @("ClusterName", "NumWorkerVms", "NumWorkersOnMjsVm", "NumWorkersOnWorkerVms", "ClientVmSize", "MJSVmSize", "WorkerVmSize", "VmUsername", "SubscriptionId", "Region", "BaseVmVhd", "ClusterVmVhdContainer", "SubscriptionId")
+    $script:inifile_entries = @("ClusterName", "NumWorkerVms", "NumWorkersOnMjsVm", "NumWorkersOnWorkerVms", "ClientVmSize", "MJSVmSize", "WorkerVmSize", "VmUsername", "SubscriptionId", "Region", "BaseVmVhd", "ClusterVmVhdContainer", "SubscriptionId", "Public")
 
     # load static default config
     $script:config = @{}
@@ -119,6 +119,8 @@ function mdcs_create($p) {
   $NumberWorkers = readstring "Number of Worker Nodes" $script:config["NumWorkerVms"]
   $NumberWorkersMJS = readstring "Number of Workers on MJS Nodes" $script:config["NumWorkersOnMjsVm"]
   $NumberWorkersWorker = readstring "Number of Workers on Worker Nodes" $script:config["NumWorkersOnWorkerVms"]
+  $Public = readstring "Optionally open MJS and workers on public network and skip the client VM (Yes/No)." $script:config["Public"]
+  $Public = $Public.substring(0,1).toupper()+$Public.substring(1).tolower() # capitalize first character
 
   $promptstring = @"
 Admin user credential for all VMs. The supplied password must be between 8-123 characters long and must satisfy at least 3 of password complexity requirements from the following:
@@ -157,6 +159,7 @@ Admin user credential for all VMs. The supplied password must be between 8-123 c
     -replace '\[\[vmSizeClient\]\]', $ClientVmSize `
     -replace '\[\[vmSizeMJS\]\]', $MJSVmSize `
     -replace '\[\[vmSizeWorker\]\]', $WorkerVmSize `
+    -replace '\[\[Public\]\]', $Public `
     -replace '\[\[adminUserName\]\]', $VmUsername `
     -replace '\[\[adminPassword\]\]', $VmPassword |
   Out-File $updated_template_param
@@ -389,7 +392,7 @@ function mdcs_delete($p) {
       # getting storage context for deleting
       $storageaccount = (Get-AzureRmStorageAccount | ? {$_.StorageAccountName -eq $storageaccountname})
       $storagekey = Get-AzureRmStorageAccountKey -ResourceGroupName $storageaccount.ResourceGroupName -Name $storageaccount.StorageAccountName
-      $storagecontext = New-AzureStorageContext -StorageAccountName $storageaccount.StorageAccountName -StorageAccountKey $storagekey.Key1
+      $storagecontext = New-AzureStorageContext -StorageAccountName $storageaccount.StorageAccountName -StorageAccountKey $storagekey[0].Value
 
       $vhds | % {
         $vhd = $_
