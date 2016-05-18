@@ -27,7 +27,7 @@ function mdcs_create($p) {
   }
 
   function parse_init($p) {
-    $script:inifile_entries = @("ClusterName", "NumWorkerVms", "NumWorkersOnMjsVm", "NumWorkersOnWorkerVms", "ClientVmSize", "MJSVmSize", "WorkerVmSize", "VmUsername", "SubscriptionId", "Region", "BaseVmVhd", "ClusterVmVhdContainer", "SubscriptionId")
+    $script:inifile_entries = @("ClusterName", "NumWorkerVms", "NumWorkersOnMjsVm", "NumWorkersOnWorkerVms", "ClientVmSize", "MJSVmSize", "WorkerVmSize", "VmUsername", "SubscriptionId", "Region", "BaseVmVhd", "ClusterVmVhdContainer", "SubscriptionId", "Public")
 
     # load static default config
     $script:config = @{}
