@@ -217,6 +217,17 @@
       "metadata": {
         "description": "This is the container URL that will hold all VHDs for the VMs"
       }
+    },
+    "public": {
+      "type": "string",
+      "defaultValue": "No",
+      "allowedValues": [
+        "Yes",
+        "No"
+      ],
+      "metadata": {
+        "description": "Optionally open MJS and workers on public network and skip the client VM."
+      }
     }
   },
   "variables": {
@@ -258,7 +269,9 @@
     "clientScriptName": "[concat(variables('scriptUri'), 'private_client_vm_setup.ps1')]",
     "installationCLI": "powershell -ExecutionPolicy Unrestricted -file private_worker_vm_setup.ps1 shim",
     "clientInstallationCLI": "powershell -ExecutionPolicy Unrestricted -file private_client_vm_setup.ps1",
-    "nsgTemplateUrl": "[concat(variables('repoUri'), 'nsg-private.json')]",
+    "nsgTemplateUrlYes": "[concat(variables('repoUri'), 'nsg-public.json')]",
+    "nsgTemplateUrlNo": "[concat(variables('repoUri'), 'nsg-private.json')]",
+    "nsgTemplateUrl": "[variables(concat('nsgTemplateUrl',parameters('public'))))]",
     "networkTemplateUrl": "[concat(variables('repoUri'), 'network.json')]",
     "nicTemplateUrl": "[concat(variables('repoUri'), 'nic-private.json')]",
     "vmTemplateUrl": "[concat(variables('repoUri'), 'vm.json')]",

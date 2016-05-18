@@ -26,6 +26,9 @@
     "numWorkersWorker": {
       "value": -1
     },
+    "Public": {
+      "value": "No"
+    },
     "imageUri": {
       "value": "https://mdcsimageeastus2762.blob.core.windows.net/system/Microsoft.Compute/Images/mytemplate/t-osDisk.44acc251-d165-47f9-9d04-c3b37f537a9e.vhd"
     },

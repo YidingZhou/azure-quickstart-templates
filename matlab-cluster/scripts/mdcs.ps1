@@ -119,6 +119,8 @@ function mdcs_create($p) {
   $NumberWorkers = readstring "Number of Worker Nodes" $script:config["NumWorkerVms"]
   $NumberWorkersMJS = readstring "Number of Workers on MJS Nodes" $script:config["NumWorkersOnMjsVm"]
   $NumberWorkersWorker = readstring "Number of Workers on Worker Nodes" $script:config["NumWorkersOnWorkerVms"]
+  $Public = readstring "Optionally open MJS and workers on public network and skip the client VM (Yes/No)." $script:config["Public"]
+  $Public = $Public.substring(0,1).toupper()+$Public.substring(1).tolower() # capitalize first character
 
   $promptstring = @"
 Admin user credential for all VMs. The supplied password must be between 8-123 characters long and must satisfy at least 3 of password complexity requirements from the following:
@@ -157,6 +159,7 @@ Admin user credential for all VMs. The supplied password must be between 8-123 c
     -replace '\[\[vmSizeClient\]\]', $ClientVmSize `
     -replace '\[\[vmSizeMJS\]\]', $MJSVmSize `
     -replace '\[\[vmSizeWorker\]\]', $WorkerVmSize `
+    -replace '\[\[Public\]\]', $Public `
     -replace '\[\[adminUserName\]\]', $VmUsername `
     -replace '\[\[adminPassword\]\]', $VmPassword |
   Out-File $updated_template_param
