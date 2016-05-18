@@ -271,7 +271,7 @@
     "clientInstallationCLI": "powershell -ExecutionPolicy Unrestricted -file private_client_vm_setup.ps1",
     "nsgTemplateUrlYes": "[concat(variables('repoUri'), 'nsg-public.json')]",
     "nsgTemplateUrlNo": "[concat(variables('repoUri'), 'nsg-private.json')]",
-    "nsgTemplateUrl": "[variables(concat('nsgTemplateUrl',parameters('public'))))]",
+    "nsgTemplateUrl": "[variables(concat('nsgTemplateUrl',parameters('public')))]",
     "networkTemplateUrl": "[concat(variables('repoUri'), 'network.json')]",
     "nicTemplateUrl": "[concat(variables('repoUri'), 'nic-private.json')]",
     "vmTemplateUrl": "[concat(variables('repoUri'), 'vm.json')]",
