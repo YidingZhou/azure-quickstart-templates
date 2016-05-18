@@ -273,8 +273,13 @@
     "nsgTemplateUrlNo": "[concat(variables('repoUri'), 'nsg-private.json')]",
     "nsgTemplateUrl": "[variables(concat('nsgTemplateUrl',parameters('public')))]",
     "networkTemplateUrl": "[concat(variables('repoUri'), 'network.json')]",
-    "nicTemplateUrl": "[concat(variables('repoUri'), 'nic-private.json')]",
-    "vmTemplateUrl": "[concat(variables('repoUri'), 'vm.json')]",
+    "nicTemplateUrlYes": "[concat(variables('repoUri'), 'nic-public.json')]",
+    "nicTemplateUrlNo": "[concat(variables('repoUri'), 'nic-private.json')]",
+    "nicTemplateUrl": "[variables(concat('nicTemplateUrl',parameters('public')))]",
+    "clientTemplateUrlYes": "[concat(variables('repoUri'), 'vm-client-empty-resource.json')]",
+    "clientTemplateUrlNo": "[concat(variables('repoUri'), 'vm-client.json')]",
+    "clientTemplateUrl": "[variables(concat('clientTemplateUrl', parameters('public')))]",
+    "mjsTemplateUrl": "[concat(variables('repoUri'), 'vm-mjs.json')]",
     "networkSecurityGroupName": "NSGMJS",
     "imageUri": "[parameters('imageUri')]",
     "vhdContainer": "[parameters('vhdContainer')]"
@@ -347,7 +352,7 @@
       }
     },
     {
-      "name": "vm",
+      "name": "client",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2015-01-01",
       "dependsOn": [
@@ -356,7 +361,39 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[variables('vmTemplateUrl')]",
+          "uri": "[variables('clientTemplateUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "adminUserName": {
+            "value": "[parameters('adminUserName')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "vmSizeClient": {
+            "value": "[parameters('vmSizeClient')]"
+          },
+          "imageUri": {
+            "value": "[parameters('imageUri')]"
+          },
+          "vhdContainer": {
+            "value": "[parameters('vhdContainer')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "mjs",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "[concat('Microsoft.Resources/deployments/', 'nic')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('mjsTemplateUrl')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
@@ -371,9 +408,6 @@
           },
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
-          },
-          "vmSizeClient": {
-            "value": "[parameters('vmSizeClient')]"
           },
           "vmSizeMJS": {
             "value": "[parameters('vmSizeMJS')]"
